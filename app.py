@@ -22,7 +22,7 @@ def getAI():
         return render_template("genAI.html", r="No input provided.")
 
     try:
-        r = palm.chat(messages=q, model="models/chat-bison-001")
+        r = palm.chat(messages=q, model="models/text-bison")
         print(f"API Response: {r}")
         return render_template("genAI.html", r=r.last if hasattr(r, 'last') else "No response available.")
     except Exception as e:
