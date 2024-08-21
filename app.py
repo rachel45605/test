@@ -12,9 +12,9 @@ def index():
 def getAI():
     api_key = request.form.get("api_key")
     if not api_key:
-        return "API key is required.", 400  # Bad request if API key is missing
+        return "API key is required.", 400
 
-    session['api_key'] = api_key  # Store API key in session
+    session['api_key'] = api_key
     palm.configure(api_key=api_key)
 
     q = request.form.get("q")
@@ -23,9 +23,12 @@ def getAI():
 
     try:
         r = palm.chat(messages=q, model="models/chat-bison-001")
+        print(f"API Response: {r}")
         return render_template("genAI.html", r=r.last if hasattr(r, 'last') else "No response available.")
     except Exception as e:
+        print(f"Error: {str(e)}")  # Detailed error logging
         return render_template("genAI.html", r=f"Error: {str(e)}")
+
 
 @app.route("/DApp", methods=["POST"])
 def DApp():
