@@ -41,6 +41,7 @@ from flask import Flask, render_template, request, session
 import requests
 import json
 import logging
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Needed for session management
@@ -64,22 +65,23 @@ def getAI():
         return render_template("genAI.html", r="No input provided.")
 
     try:
-        # Construct the API request
-        url = "https://generativelanguage.googleapis.com/v1beta/models/chat-bison-001:generateText"
-        headers = {'Content-Type': 'application/json'}
+        # Construct the API request for Gemini
+        url = "https://api.gemini.com/v1/models/gemini-1.5-flash:generate"  # Replace with the correct endpoint
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {api_key}'
+        }
         data = {
-            "prompt": {
-                "text": q
-            }
+            "prompt": q
         }
 
         # Make the API request
-        response = requests.post(url, headers=headers, json=data, params={'key': api_key}, timeout=10)
+        response = requests.post(url, headers=headers, json=data, timeout=10)
 
         response.raise_for_status()  # Raise an exception for bad status codes
 
         # Extract the generated text from the response
-        generated_text = response.json().get('result', {}).get('text', 'No response from API.')
+        generated_text = response.json().get('text', 'No response from API.')
         return render_template("genAI.html", r=generated_text)
 
     except requests.exceptions.RequestException as e:
