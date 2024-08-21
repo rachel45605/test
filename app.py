@@ -2,7 +2,7 @@ from flask import Flask, render_template, request
 import google.generativeai as palm
 import os
 
-api = os.getenv("MAKERSUITE_API_TOKEN")
+api = AIzaSyDtgxpFE0405T7m7l4llYVzW-eCb_Z-XMg
 if not api:
     raise EnvironmentError("MAKERSUITE_API_TOKEN environment variable is not set")
 
