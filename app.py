@@ -37,7 +37,7 @@
 # if __name__ == "__main__":
 #     app.run(debug=True)
 
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, session
 import requests
 import json
 import logging
@@ -57,7 +57,7 @@ def getAI():
     if not api_key:
         return "API key is required.", 400
 
-    session['api_key'] = api_key
+    session['api_key'] = api_key  # Store API key in session
 
     q = request.form.get("q")
     if not q:
@@ -65,19 +65,21 @@ def getAI():
 
     try:
         # Construct the API request
-        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
+        url = "https://generativelanguage.googleapis.com/v1beta/models/chat-bison-001:generateText"
         headers = {'Content-Type': 'application/json'}
-        data = json.dumps({"contents":[{"parts":[{"text": q}]}]})
+        data = {
+            "prompt": {
+                "text": q
+            }
+        }
 
-        # Make the API request with retries
-        response = requests.post(url, headers=headers, data=data, params={'key': api_key}, 
-                                 timeout=5,  # Set a timeout for the request
-                                 retries=3)  # Retry up to 3 times on failure
+        # Make the API request
+        response = requests.post(url, headers=headers, json=data, params={'key': api_key}, timeout=10)
 
         response.raise_for_status()  # Raise an exception for bad status codes
 
         # Extract the generated text from the response
-        generated_text = response.json()['contents'][0]['parts'][0]['text']
+        generated_text = response.json().get('result', {}).get('text', 'No response from API.')
         return render_template("genAI.html", r=generated_text)
 
     except requests.exceptions.RequestException as e:
