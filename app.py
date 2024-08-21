@@ -100,5 +100,9 @@ def getAI():
 def DApp():
     return render_template("DApp.html")
 
+@app.route("/newRoute", methods=["POST"])
+def newRoute():
+    return "You have clicked the new button!"
+
 if __name__ == "__main__":
     app.run(debug=True)
