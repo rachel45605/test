@@ -6,32 +6,28 @@ app.secret_key = 'your_secret_key'  # Needed for session management
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    if request.method == "POST":
-        api_key = request.form.get("api_key")
-        if api_key:
-            session['api_key'] = api_key  # Store API key in session
-            palm.configure(api_key=api_key)
-            return redirect(url_for('getAI'))
     return render_template("index.html")
 
-@app.route("/genAI", methods=["GET", "POST"])
+@app.route("/genAI", methods=["POST"])
 def getAI():
-    if 'api_key' not in session:
-        return redirect(url_for('index'))  # Redirect to index if no API key is found
+    api_key = request.form.get("api_key")
+    if not api_key:
+        return "API key is required.", 400  # Bad request if API key is missing
 
-    if request.method == "POST":
-        q = request.form.get("q")
-        if not q:
-            return render_template("genAI.html", r="No input provided.")
-        try:
-            r = palm.chat(messages=q, model="models/chat-bison-001")
-            return render_template("genAI.html", r=r.last if hasattr(r, 'last') else "No response available.")
-        except Exception as e:
-            return render_template("genAI.html", r=f"Error: {str(e)}")
+    session['api_key'] = api_key  # Store API key in session
+    palm.configure(api_key=api_key)
 
-    return render_template("genAI.html", r="")
+    q = request.form.get("q")
+    if not q:
+        return render_template("genAI.html", r="No input provided.")
 
-@app.route("/DApp", methods=["GET", "POST"])
+    try:
+        r = palm.chat(messages=q, model="models/chat-bison-001")
+        return render_template("genAI.html", r=r.last if hasattr(r, 'last') else "No response available.")
+    except Exception as e:
+        return render_template("genAI.html", r=f"Error: {str(e)}")
+
+@app.route("/DApp", methods=["POST"])
 def DApp():
     return render_template("DApp.html")
 
