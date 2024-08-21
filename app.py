@@ -64,18 +64,37 @@ def getAI():
         return render_template("genAI.html", r="No input provided.")
 
     try:
+        # Construct the API request
         url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
         headers = {'Content-Type': 'application/json'}
         data = json.dumps({"contents":[{"parts":[{"text": q}]}]})
-        response = requests.post(url, headers=headers, data=data, params={'key': api_key})
-        response.raise_for_status() 
 
+        # Make the API request with retries
+        response = requests.post(url, headers=headers, data=data, params={'key': api_key}, 
+                                 timeout=5,  # Set a timeout for the request
+                                 retries=3)  # Retry up to 3 times on failure
+
+        response.raise_for_status()  # Raise an exception for bad status codes
+
+        # Extract the generated text from the response
         generated_text = response.json()['contents'][0]['parts'][0]['text']
         return render_template("genAI.html", r=generated_text)
-    
+
     except requests.exceptions.RequestException as e:
-        logging.error(f"Error: {str(e)}")
-        return render_template("genAI.html", r=f"Error: {str(e)}")
+        # Log the error
+        logging.error(f"Error during API request: {str(e)}")
+
+        # Provide a user-friendly error message
+        if isinstance(e, requests.exceptions.Timeout):
+            error_msg = "Request timed out. Please try again later."
+        elif isinstance(e, requests.exceptions.ConnectionError):
+            error_msg = "Connection error. Please check your internet connection."
+        elif isinstance(e, requests.exceptions.HTTPError):
+            error_msg = f"API request failed with status code: {e.response.status_code}"
+        else:
+            error_msg = "An unexpected error occurred. Please try again later."
+
+        return render_template("genAI.html", r=error_msg)
 
 @app.route("/DApp", methods=["POST"])
 def DApp():
