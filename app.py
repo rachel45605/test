@@ -37,70 +37,53 @@
 # if __name__ == "__main__":
 #     app.run(debug=True)
 
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request
 import requests
-import json
-import logging
 import os
 
+# Initialize Flask app
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Needed for session management
 
-logging.basicConfig(level=logging.DEBUG)  # Enable detailed logging
+# Get the API key from environment variables
+api_key = os.getenv("MAKERSUITE_API_TOKEN")
+
+# Define the correct Gemini API endpoint and headers
+GEMINI_API_URL = "https://api.gemini.com/v1/generate"  # Replace with the actual endpoint
+HEADERS = {
+    'Content-Type': 'application/json',
+    'Authorization': f'Bearer {api_key}'
+}
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     return render_template("index.html")
 
-@app.route("/genAI", methods=["POST"])
+@app.route("/genAI", methods=["GET", "POST"])
 def getAI():
-    api_key = request.form.get("api_key")
-    if not api_key:
-        return "API key is required.", 400
-
-    session['api_key'] = api_key  # Store API key in session
-
     q = request.form.get("q")
     if not q:
         return render_template("genAI.html", r="No input provided.")
-
+    
     try:
-        # Construct the API request for Gemini
-        url = "https://api.gemini.com/v1/models/gemini-1.5-flash:generate"  # Replace with the correct endpoint
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {api_key}'
-        }
+        # Prepare the request data for Gemini API
         data = {
             "prompt": q
         }
 
         # Make the API request
-        response = requests.post(url, headers=headers, json=data, timeout=10)
-
+        response = requests.post(GEMINI_API_URL, headers=HEADERS, json=data, timeout=10)
         response.raise_for_status()  # Raise an exception for bad status codes
 
         # Extract the generated text from the response
-        generated_text = response.json().get('text', 'No response from API.')
-        return render_template("genAI.html", r=generated_text)
-
+        result = response.json().get('text', 'No response from API.')
+        return render_template("genAI.html", r=result)
+    
     except requests.exceptions.RequestException as e:
-        # Log the error
-        logging.error(f"Error during API request: {str(e)}")
-
-        # Provide a user-friendly error message
-        if isinstance(e, requests.exceptions.Timeout):
-            error_msg = "Request timed out. Please try again later."
-        elif isinstance(e, requests.exceptions.ConnectionError):
-            error_msg = "Connection error. Please check your internet connection."
-        elif isinstance(e, requests.exceptions.HTTPError):
-            error_msg = f"API request failed with status code: {e.response.status_code}"
-        else:
-            error_msg = "An unexpected error occurred. Please try again later."
-
+        # Log and handle errors
+        error_msg = f"An error occurred: {str(e)}"
         return render_template("genAI.html", r=error_msg)
 
-@app.route("/DApp", methods=["POST"])
+@app.route("/DApp", methods=["GET", "POST"])
 def DApp():
     return render_template("DApp.html")
 
