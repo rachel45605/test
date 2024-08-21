@@ -38,7 +38,8 @@
 #     app.run(debug=True)
 
 from flask import Flask, render_template, request, redirect, url_for, session
-import google.generativeai as palm
+import requests
+import json
 import logging
 
 app = Flask(__name__)
@@ -57,20 +58,24 @@ def getAI():
         return "API key is required.", 400
 
     session['api_key'] = api_key
-    palm.configure(api_key=api_key)
 
     q = request.form.get("q")
     if not q:
         return render_template("genAI.html", r="No input provided.")
 
     try:
-        r = palm.chat(messages=q, model="models/text-bison")
-        logging.info(f"API Response: {r}")  # Log the response for debugging
-        return render_template("genAI.html", r=r.last if hasattr(r, 'last') else "No response available.")
-    except Exception as e:
-        logging.error(f"Error: {str(e)}")  # Log the error for debugging
-        return render_template("genAI.html", r=f"Error: {str(e)}")
+        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
+        headers = {'Content-Type': 'application/json'}
+        data = json.dumps({"contents":[{"parts":[{"text": q}]}]})
+        response = requests.post(url, headers=headers, data=data, params={'key': api_key})
+        response.raise_for_status() 
 
+        generated_text = response.json()['contents'][0]['parts'][0]['text']
+        return render_template("genAI.html", r=generated_text)
+    
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error: {str(e)}")
+        return render_template("genAI.html", r=f"Error: {str(e)}")
 
 @app.route("/DApp", methods=["POST"])
 def DApp():
@@ -78,4 +83,3 @@ def DApp():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
