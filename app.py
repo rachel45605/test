@@ -40,6 +40,7 @@
 from flask import Flask, render_template, request
 import requests
 import os
+import google.generativeai as genai
 
 # import google.generativeai as palm
 # import os
@@ -59,7 +60,9 @@ app = Flask(__name__)
 api_key = os.getenv("MAKERSUITE_API_TOKEN")
 
 # Define the correct Gemini API endpoint and headers
-GEMINI_API_URL = "https://api.gemini.com/v1/generate"  # Replace with the actual endpoint
+genai.configure(api_key=os.environ["api_key"])
+
+model = genai.GenerativeModel('gemini-1.5-flash') # Replace with the actual endpoint
 HEADERS = {
     'Content-Type': 'application/json',
     'Authorization': f'Bearer {api_key}'
@@ -97,7 +100,8 @@ def getAI():
         }
 
         # Make the API request
-        response = requests.post(GEMINI_API_URL, headers=HEADERS, json=data, timeout=10)
+        # response = requests.post(GEMINI_API_URL, headers=HEADERS, json=data, timeout=10)
+        response = model.generate_content(data)
         response.raise_for_status()  # Raise an exception for bad status codes
 
         # Extract the generated text from the response
