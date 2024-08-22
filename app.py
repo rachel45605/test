@@ -110,7 +110,7 @@ def getAI():
     #     error_msg = f"An error occurred: {str(e)}"
     #     return render_template("genAI.html", r=error_msg)
     q = request.form.get("q")
-    r = model.generate_content(data)
+    r = model.generate_content(q)
     r = r.text
     return(render_template("ai_agent_reply.html",r=r))
 
