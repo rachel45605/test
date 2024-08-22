@@ -57,16 +57,13 @@ import google.generativeai as genai
 app = Flask(__name__)
 
 # Get the API key from environment variables
-api_key = os.getenv("MAKERSUITE_API_TOKEN")
+# api_key = os.getenv("MAKERSUITE_API_TOKEN")
+api_key= "AIzaSyDtgxpFE0405T7m7l4llYVzW-eCb_Z-XMg"
 
 # Define the correct Gemini API endpoint and headers
 genai.configure(api_key=os.environ["api_key"])
 
 model = genai.GenerativeModel('gemini-1.5-flash') # Replace with the actual endpoint
-HEADERS = {
-    'Content-Type': 'application/json',
-    'Authorization': f'Bearer {api_key}'
-}
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -89,29 +86,33 @@ def ai_agent():
 
 @app.route("/genAI", methods=["GET", "POST"])
 def getAI():
+    # q = request.form.get("q")
+    # if not q:
+    #     return render_template("genAI.html", r="No input provided.")
+    
+    # try:
+    #     # Prepare the request data for Gemini API
+    #     data = {
+    #         "prompt": q
+    #     }
+
+    #     # Make the API request
+    #     # response = requests.post(GEMINI_API_URL, headers=HEADERS, json=data, timeout=10)
+    #     response = model.generate_content(data)
+    #     response.raise_for_status()  # Raise an exception for bad status codes
+
+    #     # Extract the generated text from the response
+    #     result = response.json().get('text', 'No response from API.')
+    #     return render_template("genAI.html", r=result)
+    
+    # except requests.exceptions.RequestException as e:
+    #     # Log and handle errors
+    #     error_msg = f"An error occurred: {str(e)}"
+    #     return render_template("genAI.html", r=error_msg)
     q = request.form.get("q")
-    if not q:
-        return render_template("genAI.html", r="No input provided.")
-    
-    try:
-        # Prepare the request data for Gemini API
-        data = {
-            "prompt": q
-        }
-
-        # Make the API request
-        # response = requests.post(GEMINI_API_URL, headers=HEADERS, json=data, timeout=10)
-        response = model.generate_content(data)
-        response.raise_for_status()  # Raise an exception for bad status codes
-
-        # Extract the generated text from the response
-        result = response.json().get('text', 'No response from API.')
-        return render_template("genAI.html", r=result)
-    
-    except requests.exceptions.RequestException as e:
-        # Log and handle errors
-        error_msg = f"An error occurred: {str(e)}"
-        return render_template("genAI.html", r=error_msg)
+    r = model.generate_content(data)
+    r = r.text
+    return(render_template("ai_agent_reply.html",r=r))
 
 @app.route("/prediction", methods=["GET","POST"])
 def prediction():
