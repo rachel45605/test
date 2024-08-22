@@ -41,6 +41,17 @@ from flask import Flask, render_template, request
 import requests
 import os
 
+# import google.generativeai as palm
+# import os
+# import openai
+
+# api = ""
+# palm.configure(api_key=api)
+# model = {"model": "models/chat-bison-001"}
+
+# os.environ["OPENAI_API_KEY"] = ""
+# client = openai.OpenAI()
+
 # Initialize Flask app
 app = Flask(__name__)
 
@@ -57,6 +68,21 @@ HEADERS = {
 @app.route("/", methods=["GET", "POST"])
 def index():
     return render_template("index.html")
+
+@app.route("/ai_agent", methods=["GET","POST"])
+def ai_agent():
+    return(render_template("ai_agent.html"))
+
+# @app.route("/genAI", methods=["GET","POST"])
+# def genAI():
+#     q = request.form.get("q")
+#     r = client.chat.completions.create(
+#         model="gpt-3.5-turbo",
+#         messages=[{"role": "user", "content": q}],
+#     )
+#     r = r.choices[0].message.content
+#     return(render_template("ai_agent_reply.html",r=r))
+
 
 @app.route("/genAI", methods=["GET", "POST"])
 def getAI():
@@ -83,9 +109,9 @@ def getAI():
         error_msg = f"An error occurred: {str(e)}"
         return render_template("genAI.html", r=error_msg)
 
-@app.route("/DApp", methods=["GET", "POST"])
-def DApp():
-    return render_template("DApp.html")
+@app.route("/prediction", methods=["GET","POST"])
+def prediction():
+    return(render_template("index.html"))
 
 @app.route("/newRoute", methods=["POST"])
 def newRoute():
